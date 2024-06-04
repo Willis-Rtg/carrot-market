@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -19,18 +19,41 @@ model User {
   email      String?    @unique
   password   String?
   phone      String?    @unique
-  github_id  Int?    @unique
+  github_id  Int?       @unique
   avatar     String?
   created_at DateTime   @default(now())
   updated_at DateTime   @updatedAt
   SMSToken   SMSToken[]
+  Product    Product[]
 }
 
 model SMSToken {
   id         Int      @id @default(autoincrement())
-  token      String   @unique
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade )
+  token      Int      @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  title       String
+  price       Float
+  description String
+  photo       Photo[]
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+model Photo {
+  id         Int      @id @default(autoincrement())
+  url        String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  Product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int
 }

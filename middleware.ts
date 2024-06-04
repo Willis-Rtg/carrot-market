@@ -23,12 +23,8 @@ export async function middleware(request: NextRequest) {
     if (!exists) {
       return NextResponse.redirect(new URL("/", request.nextUrl.origin));
     }
-  } else {
-    if (exists) {
-      return NextResponse.redirect(
-        new URL("/products", request.nextUrl.origin)
-      );
-    }
+  } else if (exists) {
+    return NextResponse.redirect(new URL("/home", request.nextUrl.origin));
   }
 }
 

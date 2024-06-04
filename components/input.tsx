@@ -1,16 +1,17 @@
-import { InputHTMLAttributes } from "react";
+import { ForwardedRef, InputHTMLAttributes, forwardRef } from "react";
 
 interface IInputProps {
   errors?: string[];
 }
 
-export default function Input({
-  errors = [],
-  ...rest
-}: IInputProps & InputHTMLAttributes<HTMLInputElement>) {
+const _Input = (
+  { errors = [], ...rest }: IInputProps & InputHTMLAttributes<HTMLInputElement>,
+  ref: ForwardedRef<HTMLInputElement>
+) => {
   return (
     <div className="flex flex-col gap-1">
       <input
+        ref={ref}
         className="bg-transparent rounded-md w-full h-10 focus:outline-none ring-1 ring-neutral-200 border-none focus:ring-2 focus:ring-orange-500 transition-shadow placeholder:text-neutral-400"
         {...rest}
       />
@@ -21,4 +22,6 @@ export default function Input({
       ))}
     </div>
   );
-}
+};
+
+export default forwardRef(_Input);
