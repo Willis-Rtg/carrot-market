@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { ProductInfo } from "./client";
-import { getCachedProductTitle } from "./actions";
+import { ProductDetailCilent } from "./client";
+import { getCachedProductTitle, getIsOwner, getProduct } from "./actions";
 import db from "@/lib/db";
 
 export async function generateMetadata({ params }: { params: { id: number } }) {
@@ -32,12 +32,15 @@ export default async function ProductDetail({
   //   revalidateTag("product-title");
   // }
 
+  const product = await getProduct(id);
+  const isOwner = await getIsOwner(product?.userId!);
+
   return (
     <div className="flex flex-col pb-20">
       {/* <form action={revalidate}>
         <button>revalidate</button>
       </form> */}
-      <ProductInfo id={id} />
+      <ProductDetailCilent product={product} isOwner={isOwner} />
     </div>
   );
 }

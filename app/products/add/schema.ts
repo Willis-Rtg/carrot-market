@@ -1,4 +1,6 @@
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { getProduct } from "../[id]/actions";
 
 export const productSchema = z.object({
   photos: z
@@ -30,3 +32,5 @@ export const productSchema = z.object({
 });
 
 export type TProduct = z.infer<typeof productSchema>;
+
+export type TPrismaProduct = Prisma.PromiseReturnType<typeof getProduct>;

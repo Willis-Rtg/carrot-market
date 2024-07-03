@@ -15,28 +15,21 @@ import { UserIcon } from "@heroicons/react/24/solid";
 import { formatToWon } from "@/lib/utils";
 import Link from "next/link";
 
-export function ProductInfo({ id }: { id: number }) {
-  const [product, setProduct] = useState<TProductDetail>();
-  const [isOwner, setIsOwner] = useState<boolean>();
-
+export function ProductDetailCilent({
+  product,
+  isOwner,
+}: {
+  product: TProductDetail;
+  isOwner: boolean;
+}) {
   const Slide = useSlide(
     product?.photos.map((photo: { url: string }) => photo.url)!
   );
 
-  const [_, deleteDispatch] = useFormState<any, FormData>(deleteProduct, id);
-
-  useEffect(() => {
-    (async () => {
-      const product = await getCachedProduct(id);
-      setProduct(product);
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      setIsOwner(await getIsOwner(product?.userId!));
-    })();
-  }, [product]);
+  const [_, deleteDispatch] = useFormState<any, FormData>(
+    deleteProduct,
+    product!.id
+  );
 
   return (
     <>
@@ -76,7 +69,7 @@ export function ProductInfo({ id }: { id: number }) {
         </span>
         {isOwner ? (
           <div className="flex gap-5">
-            <Link href={`/products/${id}/edit`}>
+            <Link href={`/products/${product!.id}/edit`}>
               <button className="bg-orange-500 px-3 py-1.5 text-white rounded-md">
                 수정하기
               </button>
@@ -90,7 +83,7 @@ export function ProductInfo({ id }: { id: number }) {
         ) : (
           <form action={createChatRoom}>
             <input name="productUserId" type="hidden" value={product?.userId} />
-            <input name="productId" type="hidden" value={id} />
+            <input name="productId" type="hidden" value={product!.id} />
             <button className="bg-orange-500 px-3 py-1.5 text-white rounded-md">
               채팅하기
             </button>
