@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import {
   TProductDetail,
+  createChatRoom,
   deleteProduct,
   getCachedProduct,
   getIsOwner,
-  getProduct,
 } from "./actions";
 import Image from "next/image";
 import { UserIcon } from "@heroicons/react/24/solid";
@@ -20,10 +20,10 @@ export function ProductInfo({ id }: { id: number }) {
   const [isOwner, setIsOwner] = useState<boolean>();
 
   const Slide = useSlide(
-    product?.photo.map((photo: { url: string }) => photo.url)!
+    product?.photos.map((photo: { url: string }) => photo.url)!
   );
 
-  const [_, dispatch] = useFormState<any, FormData>(deleteProduct, id);
+  const [_, deleteDispatch] = useFormState<any, FormData>(deleteProduct, id);
 
   useEffect(() => {
     (async () => {
@@ -42,7 +42,7 @@ export function ProductInfo({ id }: { id: number }) {
     <>
       <div className="relative aspect-square">
         <Slide.Wrapper>
-          {product?.photo.map((photo: { url: string }, index) => (
+          {product?.photos.map((photo: { url: string }, index) => (
             <div key={index} className="relative aspect-square">
               <Image key={index} fill src={photo.url} alt={product.title} />
             </div>
@@ -75,18 +75,26 @@ export function ProductInfo({ id }: { id: number }) {
           {formatToWon(product?.price || 0)}원
         </span>
         {isOwner ? (
-          <form action={dispatch}>
-            <button className="bg-red-500 px-3 py-1.5 text-white rounded-md">
-              삭제하기
+          <div className="flex gap-5">
+            <Link href={`/products/${id}/edit`}>
+              <button className="bg-orange-500 px-3 py-1.5 text-white rounded-md">
+                수정하기
+              </button>
+            </Link>
+            <form action={deleteDispatch}>
+              <button className="bg-red-500 px-3 py-1.5 text-white rounded-md">
+                삭제하기
+              </button>
+            </form>
+          </div>
+        ) : (
+          <form action={createChatRoom}>
+            <input name="productUserId" type="hidden" value={product?.userId} />
+            <input name="productId" type="hidden" value={id} />
+            <button className="bg-orange-500 px-3 py-1.5 text-white rounded-md">
+              채팅하기
             </button>
           </form>
-        ) : (
-          <Link
-            className="bg-orange-500 px-3 py-1.5 text-white rounded-md"
-            href="/chat"
-          >
-            채팅하기
-          </Link>
         )}
       </div>
     </>

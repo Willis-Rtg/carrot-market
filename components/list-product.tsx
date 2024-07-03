@@ -1,6 +1,9 @@
+"use client";
+
 import { formatToTimeAgo, formatToWon } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 
 interface IListProduct {
   id: number;
@@ -8,6 +11,8 @@ interface IListProduct {
   photo: string;
   price: number;
   created_at: Date;
+  // observer?: IntersectionObserver;
+  // productIds?: number[];
 }
 
 export default function ListProduct({
@@ -16,9 +21,22 @@ export default function ListProduct({
   photo,
   price,
   created_at,
-}: IListProduct) {
+}: // observer,
+// productIds,
+IListProduct) {
+  // const ref = useRef<HTMLAnchorElement>(null);
+  // useEffect(() => {
+  //   if (ref.current) {
+  //     observer?.observe(ref.current);
+  //   }
+  // }, [observer]);
   return (
-    <Link href={`/products/${id}`} className="flex gap-5" scroll={false}>
+    <Link
+      // ref={ref}
+      href={`/products/${id}`}
+      className="flex gap-5"
+      scroll={false}
+    >
       <div className="relative size-28 rounded-md overflow-hidden">
         <Image fill className="object-cover" src={photo} alt={title} priority />
       </div>

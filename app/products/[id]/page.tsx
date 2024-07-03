@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
-import { ProductInfo } from "./components";
+import { ProductInfo } from "./client";
 import { getCachedProductTitle } from "./actions";
-import { revalidateTag } from "next/cache";
 import db from "@/lib/db";
 
 export async function generateMetadata({ params }: { params: { id: number } }) {
+  // export async function generateMetadata(props: any) {
+  // console.log(props);
   const id = Number(params.id);
   if (isNaN(id)) {
     return notFound();
@@ -25,17 +26,17 @@ export default async function ProductDetail({
     return notFound();
   }
 
-  async function revalidate() {
-    "use server";
+  // async function revalidate() {
+  //   "use server";
 
-    revalidateTag("product-title");
-  }
+  //   revalidateTag("product-title");
+  // }
 
   return (
     <div className="flex flex-col pb-20">
-      <form action={revalidate}>
+      {/* <form action={revalidate}>
         <button>revalidate</button>
-      </form>
+      </form> */}
       <ProductInfo id={id} />
     </div>
   );
@@ -46,8 +47,9 @@ export async function generateStaticParams() {
     select: {
       id: true,
     },
-    where: {
-      id: 14 || 13,
+    take: 7,
+    orderBy: {
+      created_at: "desc",
     },
   });
   return products.map((product) => ({ id: product.id + "" }));

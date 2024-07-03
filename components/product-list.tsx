@@ -3,12 +3,14 @@
 import ListProduct from "./list-product";
 import { useEffect, useRef, useState } from "react";
 import { TInitialProducts, getMoreProducts } from "@/app/(tabs)/home/actions";
+import { RecoilRoot, useRecoilState } from "recoil";
+import { intersectionState } from "@/state/atom";
 
 interface IProductListProps {
   initialProducts?: TInitialProducts;
 }
 
-export default function ProductList({ initialProducts }: IProductListProps) {
+function _ProductList({ initialProducts }: IProductListProps) {
   const [products, setProducts] = useState(initialProducts);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +25,6 @@ export default function ProductList({ initialProducts }: IProductListProps) {
         entries: IntersectionObserverEntry[],
         observer: IntersectionObserver
       ) => {
-        console.log(entries, observer);
         const element = entries[0];
         if (element.isIntersecting && trigger.current) {
           observer.unobserve(trigger.current);
@@ -55,17 +56,41 @@ export default function ProductList({ initialProducts }: IProductListProps) {
     document.documentElement.style.scrollbarWidth = "none";
   }, []);
 
-  const [productRefs, setProductRefs] = useState<React.Ref<HTMLDivElement>[]>(
-    []
-  );
+  // const [observer, setObserver] = useState<IntersectionObserver>();
+  // const [intersection, setIntersection] = useRecoilState(intersectionState);
+
+  // useEffect(() => {
+  //   setObserver(
+  //     new IntersectionObserver((entries) => {
+  //       console.log(entries);
+  //       entries.map((entry) => {
+  //         const productId = entry.target
+  //           .getAttribute("href")!
+  //           .substring(10, 12);
+  //         if (entry.isIntersecting) {
+  //           setIntersection((prev) => [...prev, +productId]);
+  //         } else {
+  //           setIntersection((prev) => prev.filter((id) => id != +productId));
+  //         }
+  //       });
+  //     })
+  //   );
+  //   return observer?.disconnect();
+  // }, []);
+
+  // useEffect(() => {
+  //   console.log(intersection);
+  // }, [intersection]);
 
   return (
     <div className="p-5 flex flex-col gap-5">
-      {products?.map((product) => (
+      {products?.map((product, index) => (
         <ListProduct
-          key={product.id}
+          key={index}
           {...product}
-          photo={product.photo[0].url}
+          // observer={observer}
+          photo={product.photos[0].url}
+          // productIds={intersection}
         />
       ))}
       {!isLastPage && (
@@ -77,5 +102,13 @@ export default function ProductList({ initialProducts }: IProductListProps) {
         </span>
       )}
     </div>
+  );
+}
+
+export default function ProductList({ initialProducts }: IProductListProps) {
+  return (
+    <RecoilRoot>
+      <_ProductList {...{ initialProducts }} />
+    </RecoilRoot>
   );
 }

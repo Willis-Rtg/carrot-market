@@ -9,7 +9,7 @@ const _Input = (
   ref: ForwardedRef<HTMLInputElement>
 ) => {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 w-full">
       <input
         ref={ref}
         className="bg-transparent rounded-md w-full h-10 focus:outline-none ring-1 ring-neutral-200 border-none focus:ring-2 focus:ring-orange-500 transition-shadow placeholder:text-neutral-400"

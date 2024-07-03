@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import db from "@/lib/db";
 import { redirect } from "next/navigation";
 import { productSchema } from "./schema";
+import { revalidatePath } from "next/cache";
 
 export async function uploadProduct(formData: FormData) {
   const data: any = {
@@ -27,44 +28,42 @@ export async function uploadProduct(formData: FormData) {
     return validData.error.flatten();
   }
 
-  validData.data.photos.forEach(async (photo: any) => {
+  validData.data.photos.forEach(async (photo: File) => {
     const photoData = await photo.arrayBuffer();
     await fs.appendFile(`./public/${photo.name}`, Buffer.from(photoData));
   });
-  const result = productSchema.safeParse(data);
-  if (!result.success) {
-    return result.error.flatten();
-  } else {
-    const session = await getSession();
 
-    if (session.id) {
-      const product = await db.product.create({
-        data: {
-          photo: {
-            createMany: {
-              data: await validData.data.photos.map((photo: any) => {
-                return {
-                  url: `/${photo.name}`,
-                };
-              }),
-            },
-          },
-          title: result.data.title,
-          price: +result.data.price,
-          description: result.data.description,
-          user: {
-            connect: {
-              id: session.id,
-            },
+  const session = await getSession();
+
+  if (session.id) {
+    const product = await db.product.create({
+      data: {
+        photos: {
+          createMany: {
+            data: await validData.data.photos.map((photo: any) => {
+              return {
+                url: `/${photo.name}`,
+              };
+            }),
           },
         },
-        include: {
-          photo: true,
+        title: validData.data.title,
+        price: +validData.data.price,
+        description: validData.data.description,
+        user: {
+          connect: {
+            id: session.id,
+          },
         },
-      });
-      if (!!product) {
-        redirect(`/products/${product.id}`);
-      }
+      },
+      include: {
+        photos: true,
+      },
+    });
+    if (!!product) {
+      revalidatePath("/home");
+      revalidatePath(`/products/${product.id}`);
+      redirect(`/products/${product.id}`);
     }
   }
 

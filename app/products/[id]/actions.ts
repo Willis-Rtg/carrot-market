@@ -4,7 +4,7 @@ import db from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
-import { unstable_cache as nextCache } from "next/cache";
+import { unstable_cache as nextCache, revalidatePath } from "next/cache";
 
 export type TProductDetail = Prisma.PromiseReturnType<typeof getProduct>;
 
@@ -22,7 +22,7 @@ export async function getProduct(id: number) {
           id: true,
         },
       },
-      photo: {
+      photos: {
         select: {
           url: true,
         },
@@ -72,5 +72,32 @@ export async function deleteProduct(id: any, data: FormData) {
       },
     });
   }
+  revalidatePath("/home");
   redirect("/home");
+}
+
+export async function createChatRoom(formData: FormData) {
+  const productUserId = formData.get("productUserId");
+  const productId = formData.get("productId");
+
+  const session = await getSession();
+  const room = await db.chatRoom.create({
+    data: {
+      productId: +productId!,
+      users: {
+        connect: [
+          {
+            id: +productUserId!,
+          },
+          {
+            id: session.id,
+          },
+        ],
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+  redirect(`/chats/${room.id}`);
 }

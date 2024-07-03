@@ -14,17 +14,23 @@ datasource db {
 }
 
 model User {
-  id         Int        @id @default(autoincrement())
-  username   String     @unique
-  email      String?    @unique
+  id         Int          @id @default(autoincrement())
+  username   String       @unique
+  email      String?      @unique
   password   String?
-  phone      String?    @unique
-  github_id  Int?       @unique
+  phone      String?      @unique
+  github_id  Int?         @unique
   avatar     String?
-  created_at DateTime   @default(now())
-  updated_at DateTime   @updatedAt
-  SMSToken   SMSToken[]
-  Product    Product[]
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  tokens     SMSToken[]
+  Products   Product[]
+  Posts      Post[]
+  comments   Comment[]
+  likes      Like[]
+  ChatRooms  ChatRoom[]
+  messages   Message[]
+  LiveStream LiveStream?
 }
 
 model SMSToken {
@@ -37,15 +43,16 @@ model SMSToken {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          Int        @id @default(autoincrement())
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
   title       String
   price       Float
   description String
-  photo       Photo[]
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  photos      Photo[]
+  chatRooms   ChatRoom[]
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
 }
 
 model Photo {
@@ -54,6 +61,87 @@ model Photo {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  Product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId Int
+}
+
+model Post {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  views       Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int
+  comments Comment[]
+  likes    Like[]
+}
+
+model Comment {
+  id      Int    @id @default(autoincrement())
+  payload String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  rootComment Comment?  @relation(name: "ofComment", fields: [commentId], references: [id], onDelete: Cascade)
+  comments    Comment[] @relation(name: "ofComment")
+
+  commentId Int?
+  userId    Int
+  postId    Int?
+}
+
+model Like {
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId Int
+  postId Int
+
+  @@id(name: "id", fields: [userId, postId])
+}
+
+model ChatRoom {
+  id        String    @id @default(cuid())
+  users     User[]
+  messages  Message[]
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Message {
+  id      Int    @id @default(autoincrement())
+  payload String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  room       ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  chatRoomId String
+}
+
+model LiveStream {
+  id         Int    @id @default(autoincrement())
+  title      String
+  stream_key String @unique
+  stream_id  String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int @unique
 }

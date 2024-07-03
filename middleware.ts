@@ -19,13 +19,18 @@ const publicOnlyUrls: IPublicOnlyUrls = {
 export async function middleware(request: NextRequest) {
   const session = await getSession();
   const exists = publicOnlyUrls[request.nextUrl.pathname];
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
   if (!session.id) {
     if (!exists) {
       return NextResponse.redirect(new URL("/", request.nextUrl.origin));
     }
   } else if (exists) {
-    return NextResponse.redirect(new URL("/home", request.nextUrl.origin));
+    return NextResponse.redirect(new URL("/home", request.nextUrl.origin), {
+      headers: requestHeaders,
+    });
   }
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

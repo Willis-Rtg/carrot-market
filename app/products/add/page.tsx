@@ -9,7 +9,6 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { uploadProduct } from "./actions";
 import Image from "next/image";
-import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TProduct, productSchema } from "./schema";

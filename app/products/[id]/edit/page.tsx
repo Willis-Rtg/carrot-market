@@ -1,23 +1,24 @@
 "use client";
 import Button from "@/components/button";
 import Input from "@/components/input";
-import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  PhotoIcon,
-} from "@heroicons/react/24/solid";
+import { PhotoIcon } from "@heroicons/react/24/solid";
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TProduct, productSchema } from "../../add/schema";
 import { useSlide } from "@/app/hook/useSlide";
-import { uploadProduct } from "../../add/actions";
+import { TProductDetail, getProduct } from "../actions";
+import { notFound } from "next/navigation";
+import { TProductUpdate, productUpdateSchema } from "./schema";
+import { updateProduct } from "./actions";
 
-export default function AddProduct() {
+export default function AddProduct({ params }: { params: { id: number } }) {
+  if (isNaN(Number(params.id))) {
+    return notFound();
+  }
+  const [product, setProduct] = useState<TProductDetail>();
   const [previews, setPreviews] = useState<string[]>([]);
-  const [photos, setPhotos] = useState<File[]>([]);
+  const [photos, setPhotos] = useState<File[] | string[]>([]);
   const onChangeImage = (event: React.ChangeEvent<HTMLInputElement>) => {
     const {
       target: { files },
@@ -28,6 +29,7 @@ export default function AddProduct() {
     }
     const photoArr = Array.from(files);
     setPreviews([]);
+
     photoArr.forEach((file) => {
       if (file.size > 4 * 1024 * 1024) {
         alert("4MB 미만의 사진을 올려주세요.");
@@ -48,26 +50,36 @@ export default function AddProduct() {
     handleSubmit,
     formState: { errors },
     setValue,
-  } = useForm<TProduct>({
-    resolver: zodResolver(productSchema),
+  } = useForm<TProductUpdate>({
+    resolver: zodResolver(productUpdateSchema),
+    defaultValues: async () => {
+      const product = await getProduct(Number(params.id));
+      return {
+        id: +product?.id!,
+        title: product?.title!,
+        price: product?.price! + "",
+        description: product?.description!,
+        photos: product?.photos.map((photo) => photo.url)!,
+      };
+    },
   });
 
-  const dispatchIntercepter = handleSubmit((data: TProduct) => {
-    console.log("hello");
+  const dispatchIntercepter = handleSubmit((data: TProductUpdate) => {
     if (photos.length <= 0) {
       return;
     }
-    const photosArr = Array.from(photos || []);
-
     const formData = new FormData();
-    photosArr.forEach((photo, index) => {
+    photos.forEach((photo, index) => {
       formData.append(`photo-${index}`, photo);
     });
+
+    formData.append("id", data.id + "");
     formData.append("title", data.title);
     formData.append("price", data.price);
     formData.append("description", data.description);
 
-    return uploadProduct(formData);
+    console.log(errors);
+    return updateProduct(formData);
   });
 
   // const [state, dispatch] = useFormState(dispatchIntercepter, null);
@@ -75,6 +87,21 @@ export default function AddProduct() {
   const onValid = () => {
     dispatchIntercepter();
   };
+
+  useEffect(() => {
+    (async () => {
+      setProduct(await getProduct(+params.id));
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (product) {
+      (async () => {
+        setPreviews(product!.photos.map((photo) => photo.url));
+        setPhotos(product.photos.map((photo) => photo.url));
+      })();
+    }
+  }, [product]);
 
   return (
     <div>
@@ -120,9 +147,11 @@ export default function AddProduct() {
           onChange={onChangeImage}
           multiple
         />
+        <input type="hidden" />
         <Input
           {...register("title")}
           type="text"
+          onChange={(e) => e.target.value}
           placeholder="제목"
           errors={[errors.title?.message || ""]}
         />
@@ -138,7 +167,7 @@ export default function AddProduct() {
           placeholder="자세한 설명"
           errors={[errors.description?.message || ""]}
         />
-        <Button text="작성 완료" />
+        <Button text="수정 완료" />
       </form>
     </div>
   );
