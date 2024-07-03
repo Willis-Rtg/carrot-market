@@ -2,7 +2,7 @@ export default function Extra() {
   return (
     <div className="flex flex-col gap-3 py-10">
       <h1 className="font-dokdo">Extras!</h1>
-      <h2>So much more to learn!</h2>
+      <h2 className="">So much more to learn!</h2>
     </div>
   );
 }
